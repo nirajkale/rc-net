@@ -79,10 +79,13 @@ raspivid -t 999999 -h 450 -w 600 -fps 25 -hf -vf -b 2000000 -o - | gst-launch-1.
 
 gst-launch-1.0 -v tcpclientsrc host=192.168.0.105 port=5000  ! gdpdepay !  rtph264depay ! avdec_h264 ! videoconvert ! autovideosink sync=false
 
+Additionally, there are many android apps available which allow you to receive this stream via Gsftreamer:
+for e.g. RaspberryPi Camera Viewer(Gstreamer)
+
 Make sure to install gstreamer on both the devices. For more details checkout:
 https://platypus-boats.readthedocs.io/en/latest/source/rpi/video/video-streaming-gstreamer.html 
 
-# Code Walkthough:, RIGH
+# Code Walkthough:
 
 This repo contains 3 files
  
@@ -100,7 +103,7 @@ def digital_out(self, pins=[], states=[]):
    safe_print('states:', states)
    for pin, state in zip(pins, states):
       GPIO.output(pin, state)
-   return len(pins)
+   return len(pinsavod
    
 ```
 Once a function/ subroutine is registered with host, you can all the same function from client with same set of arguments. 
@@ -112,7 +115,35 @@ For now i have added methods, to write to digital & pwm pins. i'll added more fu
 
 3. UI.py
 A simple ( & ugly) UI built using pygame, to read arrow keystrokes from your keybaord & call appropriate 
-function from rc_client.py
+function from rc_client.py Before launching UI, make sure to configure the IP address of your pi in the code.
+Furthermore, your robot may not behave in sync with the keys that you are pressing. (For e.g. robot may go to right 
+when you pressing the right key) To avoid this issue you need to configure a state dictionary in UI.py
 
-WIP...
+```python
+state_mapping= {
+    'off':          [False,False,False,False],
+    'forward':      [False,True,False,True],
+    'backward':     [True,False,True,False],
+    'hard-left':    [True,False,False,True],
+    'hard-right':   [False,True,True,False],
+    'left':         [False,False,False,True],
+    'right':        [False,True,False,False],
+}
+```
+Each boolean value in above array represent ON/OFF condition on pi's IO. In one array, first two values
+are for one motor (or a pair of motors depending on design of your robot) & second two represent second motor.
+In my case i used: 9, 10 (for left motor) 17, 27 (for right motor)
+Setting values like (False,True) or (True, False) changes the direction of that motor.
+In order to get the configuration right, you might have to do a bit trial & error. (It's still easy as this config is on 
+client side (on your laptop) & no on ur pi, so that you don't have to replace your file again & again)
 
+
+## Future work:
+
+1. Adding a feature to read values from ultrasonic sensors mounted on my robot & gets it's value live stream on UI
+2. replace mannually controlled UI with a Convolutional neural network that can see the live feed & control the robot.
+
+If anyone is intrested in collaborating for the future work, contact me on nirajkale30@gmail.com or raise a pull request on 
+either pynetwork or rc-net
+
+happy coding!!
