@@ -58,6 +58,10 @@ Then navigate to the directory where rc_host.py is installed & start the host as
    pip install pygame
 ```
 If you have used any other pins other than the onces mentioned in hardware setup, make sure change the code in ui.py
+Also, make sure to update variable in rc_client.py file with ip address of your pi as below
+```python
+   pi_ip = 'YOUR.PI.IP.ADDRESS'
+```
 Then run the ui.py as:
 ```python
    python3 ui.py
@@ -66,9 +70,49 @@ Make sure rc_client.py is present in the same directory where ui.py is present.
 4. Once the UI is started, you can use UP, DOWN, LEFT, RIGHT arrow keys to control robot.
 Also, you can use CTRL + LEFT or CTRL + RIGHT to make hard turns
 
+5. For live camera feed:
+Open another ssh terminal for your pi & enter 
+
+raspivid -t 999999 -h 450 -w 600 -fps 25 -hf -vf -b 2000000 -o - | gst-launch-1.0 -v fdsrc ! h264parse !  rtph264pay config-interval=1 pt=96 ! gdppay ! tcpserversink host=192.168.0.105 port=5000
+
+& on your laptop, open another terminal & enter:
+
+gst-launch-1.0 -v tcpclientsrc host=192.168.0.105 port=5000  ! gdpdepay !  rtph264depay ! avdec_h264 ! videoconvert ! autovideosink sync=false
+
+Make sure to install gstreamer on both the devices. For more details checkout:
+https://platypus-boats.readthedocs.io/en/latest/source/rpi/video/video-streaming-gstreamer.html 
+
 # Code Walkthough:, RIGH
 
 This repo contains 3 files
  
 1. rc_host.py
+This is the python script that runs on the pi. it has a class RC_host which registers many GPIO functions 
+from RPI library for IO programming.
+for example, one of the functions being registered is 'digital_out', whcih allows, caller to set output of multiple digital pins of PI
+```python
+def __init__():
+   self.gateway.add_subroutine('digital_out', self.digital_out)
+
+# batch-data-send
+def digital_out(self, pins=[], states=[]):
+   safe_print('pins:', pins)
+   safe_print('states:', states)
+   for pin, state in zip(pins, states):
+      GPIO.output(pin, state)
+   return len(pins)
+   
+```
+Once a function/ subroutine is registered with host, you can all the same function from client with same set of arguments. 
+For more details checkout https://github.com/nirajkale/pynetwork
+
+2. rc_client.py
+This a layer that i have added on top of pynetwork controller to simplify my calls to the host from the UI. It is responsible to connect to the host & send data batches to appropriate functions when called.
+For now i have added methods, to write to digital & pwm pins. i'll added more functionality to stream data from sensor (Live!) from a Ultrasonic sensor to the UI in few 1-2 days.
+
+3. UI.py
+A simple ( & ugly) UI built using pygame, to read arrow keystrokes from your keybaord & call appropriate 
+function from rc_client.py
+
+WIP...
 
