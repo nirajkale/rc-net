@@ -1,5 +1,5 @@
 # rc-net
-## A use-case for pynetwork for raspberry pi based projects (Roboitics &amp; IOT)
+## A use-case for pynetwork for raspberry pi based projects (Robotics &amp; IOT)
 
 This use case is based on pynetwork package ( https://github.com/nirajkale/pynetwork), which meant to handle your network workloads
 by allowing you to stream your data to & from your python subroutines over the network.
